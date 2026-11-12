@@ -231,7 +231,7 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
     </div>
   </div>
   <div class="grid" id="grid"></div>
-  <footer><b style="font-weight:600;color:var(--g600)">2026년 11월 12일 업데이트</b><br>사진과 장소 정보는 카카오맵 기준이에요. 도보 시간은 가장 가까운 지하철역 출구 기준이고, 한독빌딩 기준 시간은 직선거리로 계산한 대략적인 값이에요.</footer>
+  <footer><b style="font-weight:600;color:var(--g600)">2026년 11월 12일 업데이트</b><br>사진, 장소 정보, 상세 화면의 지하철역 출구 도보 시간은 카카오맵 기준이에요. 카드와 ‘5분·10분 이내’의 도보 시간은 한독빌딩에서 직선거리로 계산한 대략적인 값이에요.</footer>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -250,10 +250,11 @@ const TYPES = {
     cats:[['GS25','GS25'],['CU','CU'],['세븐일레븐','세븐일레븐'],['이마트24','이마트24'],['기타','기타']] },
 };
 const UPDATED = '11월 12일'; // 데이터 갱신하면 이 날짜와 인트로·푸터 날짜를 같이 바꿔 주세요
-const REGIONS = ['전체','한독빌딩','강남역','역삼역','신논현역','언주역'];
-const HANDOK_MAX = 10; // 한독빌딩 근처: 도보 10분 이내
-const inRegion = (p, r) => r==='전체' || (r==='한독빌딩' ? p.hw <= HANDOK_MAX : p.s===r);
-const isH = () => !!state.q.trim() || state.region==='전체' || state.region==='한독빌딩'; // 전체·한독빌딩 탭은 한독빌딩 기준 거리
+// 거리 탭: 한독빌딩에서 걸어서 몇 분 이내인지 (모든 가게가 15분 안쪽이라 15분은 '전체'와 같아요)
+const RANGES = { '전체': 99, '5분': 5, '10분': 10 };
+const REGIONS = Object.keys(RANGES);
+const inRegion = (p, r) => p.hw <= RANGES[r];
+const isH = () => true; // 거리·정렬은 항상 한독빌딩 기준 // 전체·한독빌딩 탭은 한독빌딩 기준 거리
 const SYN = {
   '국수':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시'],
   '면':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시','우동','짬뽕','짜장면'],
@@ -356,11 +357,11 @@ function render(){
 
   PLACES.forEach(p => {
     if ((!all && !inType(p)) || !hits(p,ts)) return;
-    if (all || inCat(p)) { rc[p.s]=(rc[p.s]||0)+1; rc['전체']=(rc['전체']||0)+1; if (p.hw <= HANDOK_MAX) rc['한독빌딩']=(rc['한독빌딩']||0)+1; }
+    if (all || inCat(p)) { REGIONS.forEach(r => { if (inRegion(p, r)) rc[r]=(rc[r]||0)+1; }); }
     if (inRegion(p, state.region)) { const c = catOf(p); cnt[c]=(cnt[c]||0)+1; cnt['전체']=(cnt['전체']||0)+1; }
   });
   $('regions').innerHTML = REGIONS.map(r =>
-    `<button class="region ${state.region===r?'on':''}" data-r="${r}">${r==='전체'?'전체 지역':r==='한독빌딩'?'한독빌딩 근처':r}<span>${rc[r]||0}</span></button>`).join('');
+    `<button class="region ${state.region===r?'on':''}" data-r="${r}">${r==='전체'?'전체':`${r} 이내`}<span>${rc[r]||0}</span></button>`).join('');
   $('chips').innerHTML = [['전체','전체'], ...T.cats].map(([c,l]) =>
     `<button class="tab ${state.cat===c?'on':''} ${!cnt[c]?'zero':''}" data-c="${c}">${l}<span>${cnt[c]||0}</span></button>`).join('');
 
@@ -395,7 +396,7 @@ $('q').addEventListener('input', e => { state.q = e.target.value; clearTimeout(t
 $('clear').addEventListener('click', e => { e.preventDefault(); state.q=''; $('q').value=''; render(); $('q').focus(); });
 $('types').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setType(b.dataset.t); });
 $('chips').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b) return; state.cat = b.dataset.c; render(); });
-$('regions').addEventListener('click', e => { const b = e.target.closest('.region'); if (!b) return; state.region = b.dataset.r; if (state.region==='한독빌딩') state.sort = 'd'; render(); });
+$('regions').addEventListener('click', e => { const b = e.target.closest('.region'); if (!b) return; state.region = b.dataset.r; render(); });
 $('sort').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.sort = b.dataset.s; render(); });
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (TYPES[h]) setType(h); });
 document.addEventListener('keydown', e => {
