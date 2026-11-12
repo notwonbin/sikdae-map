@@ -122,7 +122,6 @@ h1{font-size:28px;line-height:1.36;font-weight:700;color:var(--g900)}
 .pick:hover{background:var(--g50)}
 .pick:active{transform:translateY(var(--ty)) scale(.96)}
 .pick[hidden]{display:none}
-.pick.away{--ty:calc(100% + 32px);opacity:0;pointer-events:none}
 @media (min-width:641px){ .pick{right:32px;bottom:32px} }
 .toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translate(-50%,20px);z-index:60;background:rgba(25,31,40,.92);color:#fff;font-size:14px;font-weight:600;
   padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;white-space:nowrap}
@@ -455,17 +454,6 @@ function showDetail(p, isPick){
 }
 function close(){ $('dim').classList.remove('on'); }
 $('pick').addEventListener('click', spotlight);
-// 아래로 스크롤하는 동안엔 추천 버튼을 숨기고, 위로 올리거나 멈추면 다시 보여줘요
-(function(){
-  let lastY = scrollY, idle;
-  addEventListener('scroll', () => {
-    const y = scrollY, btn = $('pick');
-    if (y > lastY + 4 && y > 120) btn.classList.add('away');
-    else if (y < lastY - 4) btn.classList.remove('away');
-    lastY = y;
-    clearTimeout(idle); idle = setTimeout(() => btn.classList.remove('away'), 700);
-  }, { passive: true });
-})();
 $('grid').addEventListener('click', e => {
   const f = e.target.closest('.fav'); if (f) { toggleFav(f.dataset.fav); if (TYPES[state.ty].fav && !state.q) setTimeout(render, 250); return; }
   const c = e.target.closest('.card'); if (c) showDetail(BYID[c.dataset.id], false);
