@@ -255,8 +255,8 @@ const TYPES = {
 };
 const UPDATED = '11월 12일'; // 데이터 갱신하면 이 날짜와 인트로·푸터 날짜를 같이 바꿔 주세요
 // 거리 탭: 한독빌딩에서 걸어서 몇 분 이내인지 (모든 가게가 15분 안쪽이라 15분은 '전체'와 같아요)
-const RANGES = { '전체': p => true, '5분': p => p.hw <= 5, '10분': p => p.hw <= 10, '10분+': p => p.hw > 10 };
-const RLABEL = { '전체':'전체', '5분':'5분 이내', '10분':'10분 이내', '10분+':'10분 넘게' };
+const RANGES = { '전체': p => true, '5분': p => p.hw <= 5, '10분': p => p.hw <= 10 };
+const RLABEL = { '전체':'전체', '5분':'5분 이내', '10분':'10분 이내' };
 const REGIONS = Object.keys(RANGES);
 const inRegion = (p, r) => RANGES[r](p);
 const isH = () => true; // 거리·정렬은 항상 한독빌딩 기준 // 전체·한독빌딩 탭은 한독빌딩 기준 거리
