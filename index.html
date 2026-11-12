@@ -3,8 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>식권대장 맛지도 · 멋쟁이사자처럼</title>
-<meta name="description" content="식권대장으로 결제할 수 있는 강남·역삼 음식점, 카페, 편의점을 사진과 함께 찾아보세요.">
+<title>멋사 식권대장 ver. vinnie</title>
+<meta name="description" content="강남·역삼 식권대장 음식점·카페·편의점을 사진으로 찾아보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sikdae-map.vercel.app/">
+<meta property="og:title" content="멋사 식권대장 ver. vinnie">
+<meta property="og:description" content="강남·역삼 식권대장 음식점·카페·편의점을 사진으로 찾아보세요.">
+<meta property="og:image" content="https://sikdae-map.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
@@ -292,7 +300,7 @@ function card(p, i){
 let current = [];
 function render(){
   const T = TYPES[state.ty];
-  document.title = `식권대장 맛지도 · ${T.name}`;
+  document.title = `멋사 식권대장 ver. vinnie · ${T.name}`;
   $('types').innerHTML = Object.entries(TYPES).map(([k,t]) =>
     `<button class="${state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${COUNT[k]||0}</span></button>`).join('');
   $('title').textContent = T.title;
