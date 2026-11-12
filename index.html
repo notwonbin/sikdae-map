@@ -169,6 +169,9 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
   .seg{display:flex}
   .seg button{flex:1;padding:0 4px;font-size:14px;white-space:nowrap}
   .seg button span{margin-left:3px;font-size:13px}
+  .regions{gap:14px}
+  .region{font-size:15px}
+  .region span{font-size:13px;margin-left:3px}
   h1{font-size:24px;margin-top:20px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}
   .btn{padding:0 14px}
@@ -231,7 +234,7 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
     </div>
   </div>
   <div class="grid" id="grid"></div>
-  <footer><b style="font-weight:600;color:var(--g600)">2026년 11월 12일 업데이트</b><br>사진, 장소 정보, 상세 화면의 지하철역 출구 도보 시간은 카카오맵 기준이에요. 카드와 ‘5분·10분 이내’의 도보 시간은 한독빌딩에서 직선거리로 계산한 대략적인 값이에요.</footer>
+  <footer><b style="font-weight:600;color:var(--g600)">2026년 11월 12일 업데이트</b><br>사진, 장소 정보, 상세 화면의 지하철역 출구 도보 시간은 카카오맵 기준이에요. 카드와 거리 탭의 도보 시간은 한독빌딩에서 직선거리로 계산한 대략적인 값이에요.</footer>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -251,9 +254,10 @@ const TYPES = {
 };
 const UPDATED = '11월 12일'; // 데이터 갱신하면 이 날짜와 인트로·푸터 날짜를 같이 바꿔 주세요
 // 거리 탭: 한독빌딩에서 걸어서 몇 분 이내인지 (모든 가게가 15분 안쪽이라 15분은 '전체'와 같아요)
-const RANGES = { '전체': 99, '5분': 5, '10분': 10 };
+const RANGES = { '전체': p => true, '5분': p => p.hw <= 5, '10분': p => p.hw <= 10, '10분+': p => p.hw > 10 };
+const RLABEL = { '전체':'전체', '5분':'5분 이내', '10분':'10분 이내', '10분+':'10분 넘게' };
 const REGIONS = Object.keys(RANGES);
-const inRegion = (p, r) => p.hw <= RANGES[r];
+const inRegion = (p, r) => RANGES[r](p);
 const isH = () => true; // 거리·정렬은 항상 한독빌딩 기준 // 전체·한독빌딩 탭은 한독빌딩 기준 거리
 const SYN = {
   '국수':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시'],
@@ -361,7 +365,7 @@ function render(){
     if (inRegion(p, state.region)) { const c = catOf(p); cnt[c]=(cnt[c]||0)+1; cnt['전체']=(cnt['전체']||0)+1; }
   });
   $('regions').innerHTML = REGIONS.map(r =>
-    `<button class="region ${state.region===r?'on':''}" data-r="${r}">${r==='전체'?'전체':`${r} 이내`}<span>${rc[r]||0}</span></button>`).join('');
+    `<button class="region ${state.region===r?'on':''}" data-r="${r}">${RLABEL[r]}<span>${rc[r]||0}</span></button>`).join('');
   $('chips').innerHTML = [['전체','전체'], ...T.cats].map(([c,l]) =>
     `<button class="tab ${state.cat===c?'on':''} ${!cnt[c]?'zero':''}" data-c="${c}">${l}<span>${cnt[c]||0}</span></button>`).join('');
 
