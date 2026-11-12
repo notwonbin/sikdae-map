@@ -114,13 +114,17 @@ h1{font-size:28px;line-height:1.36;font-weight:700;color:var(--g900)}
 .sheet .fav svg path{fill:transparent}
 .sheet .fav.on svg path{fill:#F04452}
 .sheet{position:relative}
-.pick{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;height:54px;padding:0 24px 0 20px;
-  border-radius:27px;background:var(--blue);color:#fff;font-size:16px;font-weight:700;display:inline-flex;align-items:center;gap:8px;
-  box-shadow:0 8px 24px rgba(49,130,246,.35),0 2px 6px rgba(0,0,0,.08);transition:background .15s, transform .15s}
-.pick:hover{background:var(--blue-hover)}
-.pick:active{transform:translateX(-50%) scale(.96)}
+.pick{--ty:0px;position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(var(--ty));z-index:30;height:44px;padding:0 16px 0 13px;
+  border-radius:22px;background:rgba(255,255,255,.96);color:var(--g800);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--g200);box-shadow:0 4px 14px rgba(0,0,0,.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:background .15s, transform .3s cubic-bezier(.2,.8,.2,1), opacity .3s}
+.pick svg{color:var(--blue)}
+.pick:hover{background:var(--g50)}
+.pick:active{transform:translateY(var(--ty)) scale(.96)}
 .pick[hidden]{display:none}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,20px);z-index:60;background:rgba(25,31,40,.92);color:#fff;font-size:14px;font-weight:600;
+.pick.away{--ty:calc(100% + 32px);opacity:0;pointer-events:none}
+@media (min-width:641px){ .pick{right:32px;bottom:32px} }
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translate(-50%,20px);z-index:60;background:rgba(25,31,40,.92);color:#fff;font-size:14px;font-weight:600;
   padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;white-space:nowrap}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .card:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:16px}
@@ -246,7 +250,7 @@ footer{border-top:1px solid var(--g100);padding:28px 0 110px;font-size:13px;line
   <footer><b style="font-weight:600;color:var(--g600)">2026년 11월 12일 업데이트</b><br>사진, 장소 정보, 상세 화면의 지하철역 출구 도보 시간은 카카오맵 기준이에요. 카드와 거리 탭의 도보 시간은 한독빌딩에서 직선거리로 계산한 대략적인 값이에요.</footer>
 </div>
 
-<button class="pick" id="pick" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>랜덤 추천받기</button>
+<button class="pick" id="pick" type="button"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>랜덤 추천</button>
 <div class="toast" id="toast"></div>
 <div class="dim" id="dim"><div class="sheet" id="spot"></div></div>
 
@@ -451,6 +455,17 @@ function showDetail(p, isPick){
 }
 function close(){ $('dim').classList.remove('on'); }
 $('pick').addEventListener('click', spotlight);
+// 아래로 스크롤하는 동안엔 추천 버튼을 숨기고, 위로 올리거나 멈추면 다시 보여줘요
+(function(){
+  let lastY = scrollY, idle;
+  addEventListener('scroll', () => {
+    const y = scrollY, btn = $('pick');
+    if (y > lastY + 4 && y > 120) btn.classList.add('away');
+    else if (y < lastY - 4) btn.classList.remove('away');
+    lastY = y;
+    clearTimeout(idle); idle = setTimeout(() => btn.classList.remove('away'), 700);
+  }, { passive: true });
+})();
 $('grid').addEventListener('click', e => {
   const f = e.target.closest('.fav'); if (f) { toggleFav(f.dataset.fav); if (TYPES[state.ty].fav && !state.q) setTimeout(render, 250); return; }
   const c = e.target.closest('.card'); if (c) showDetail(BYID[c.dataset.id], false);
