@@ -77,7 +77,7 @@ h1{font-size:28px;line-height:1.36;font-weight:700;margin-top:22px;color:var(--g
 
 .tabs{display:flex;gap:6px;overflow-x:auto;padding:14px 0;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tabs[hidden]{display:none}
+.tabs[hidden],.regions[hidden]{display:none}
 .tab{flex:none;height:34px;padding:0 13px;border-radius:17px;font-size:14px;font-weight:600;color:var(--g700);
   background:var(--g100);transition:background .15s,color .15s;display:inline-flex;align-items:center;gap:5px}
 .tab span{font-weight:500;color:var(--g500);font-size:13px}
@@ -144,6 +144,7 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
 .intro > div > *{opacity:0;transform:translateY(10px);animation:introIn .4s cubic-bezier(.2,.8,.2,1) forwards}
 .intro .i1{font-size:15px;font-weight:600;color:var(--g500);animation-delay:.05s}
 .intro .i2{font-size:34px;font-weight:800;letter-spacing:-0.04em;color:var(--g900);margin-top:8px;animation-delay:.12s}
+.intro .i4{font-size:13px;font-weight:500;color:var(--g500);margin-top:18px;animation-delay:.3s}
 .intro .i3{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:var(--blue);background:#E8F3FF;padding:6px 12px;border-radius:999px;animation-delay:.22s}
 @keyframes introIn{to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){ .intro > div > *{animation:none;opacity:1;transform:none} }
@@ -171,6 +172,7 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
     <div class="i1">멋쟁이사자처럼</div>
     <div class="i2">식권대장 맛지도</div>
     <div class="i3">ver. vinnie</div>
+    <div class="i4">2026년 11월 12일 업데이트</div>
   </div>
 </div>
 <script>
@@ -230,10 +232,11 @@ const TYPES = {
   cvs:  { name:'편의점', title:'가까운 편의점을 찾아볼까요?', ph:'편의점 이름 검색', pick:'',
     cats:[['GS25','GS25'],['CU','CU'],['세븐일레븐','세븐일레븐'],['이마트24','이마트24'],['기타','기타']] },
 };
+const UPDATED = '11월 12일'; // 데이터 갱신하면 이 날짜와 인트로·푸터 날짜를 같이 바꿔 주세요
 const REGIONS = ['전체','한독빌딩','강남역','역삼역','신논현역','언주역'];
 const HANDOK_MAX = 10; // 한독빌딩 근처: 도보 10분 이내
 const inRegion = (p, r) => r==='전체' || (r==='한독빌딩' ? p.hw <= HANDOK_MAX : p.s===r);
-const isH = () => state.region==='전체' || state.region==='한독빌딩'; // 전체·한독빌딩 탭은 한독빌딩 기준 거리
+const isH = () => !!state.q.trim() || state.region==='전체' || state.region==='한독빌딩'; // 전체·한독빌딩 탭은 한독빌딩 기준 거리
 const SYN = {
   '국수':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시'],
   '면':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시','우동','짬뽕','짜장면'],
@@ -269,10 +272,10 @@ const hits = (p, ts) => ts.every(alts => alts.some(a => p.hay.includes(a)));
 
 function filtered(){
   const ts = terms();
-  // 검색어가 있으면 음식점·카페·편의점과 카테고리를 가리지 않고 전체에서 찾아요 (지역 탭은 유지)
+  // 검색어가 있으면 음식점·카페·편의점, 카테고리, 지역을 가리지 않고 전체에서 찾아요
   const all = ts.length > 0;
-  const list = PLACES.filter(p => (all || p.ty===state.ty) && hits(p,ts)
-    && (all || state.cat==='전체' || p.c===state.cat) && inRegion(p, state.region));
+  const list = PLACES.filter(p => hits(p,ts) && (all ||
+    (p.ty===state.ty && (state.cat==='전체' || p.c===state.cat) && inRegion(p, state.region))));
   if (state.sort === 'n') list.sort((a,b) => a.n.localeCompare(b.n, 'ko'));
   if (state.sort === 'd') list.sort(isH() ? (a,b) => a.hw - b.hw : (a,b) => (a.w||99) - (b.w||99));
   return list;
@@ -305,14 +308,15 @@ function render(){
   const T = TYPES[state.ty];
   document.title = `멋사 식권대장 ver. vinnie · ${T.name}`;
   const ts = terms(), all = ts.length > 0, cnt = {}, rc = {}, tc = {};
-  PLACES.forEach(p => { if (hits(p,ts) && inRegion(p, state.region)) tc[p.ty]=(tc[p.ty]||0)+1; });
+  PLACES.forEach(p => { if (hits(p,ts)) tc[p.ty]=(tc[p.ty]||0)+1; });
   $('types').innerHTML = Object.entries(TYPES).map(([k,t]) =>
     `<button class="${!all && state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${all ? (tc[k]||0) : (COUNT[k]||0)}</span></button>`).join('');
   $('title').textContent = all ? `‘${state.q.trim()}’ 검색 결과` : T.title;
-  $('sub').textContent = all ? '음식점·카페·편의점 전체에서 찾았어요' : `식권대장 ${T.name} ${COUNT[state.ty]}곳`;
+  $('sub').textContent = all ? '음식점·카페·편의점 전체에서 찾았어요' : `식권대장 ${T.name} ${COUNT[state.ty]}곳 · ${UPDATED} 업데이트`;
   $('q').placeholder = T.ph;
   $('pick').hidden = !all && !T.pick;
   $('chips').hidden = all;
+  $('regions').hidden = all;
 
   PLACES.forEach(p => {
     if ((!all && p.ty!==state.ty) || !hits(p,ts)) return;
