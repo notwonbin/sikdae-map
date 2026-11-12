@@ -77,6 +77,7 @@ h1{font-size:28px;line-height:1.36;font-weight:700;margin-top:22px;color:var(--g
 
 .tabs{display:flex;gap:6px;overflow-x:auto;padding:14px 0;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
+.tabs[hidden]{display:none}
 .tab{flex:none;height:34px;padding:0 13px;border-radius:17px;font-size:14px;font-weight:600;color:var(--g700);
   background:var(--g100);transition:background .15s,color .15s;display:inline-flex;align-items:center;gap:5px}
 .tab span{font-weight:500;color:var(--g500);font-size:13px}
@@ -268,8 +269,10 @@ const hits = (p, ts) => ts.every(alts => alts.some(a => p.hay.includes(a)));
 
 function filtered(){
   const ts = terms();
-  const list = PLACES.filter(p => p.ty===state.ty && hits(p,ts)
-    && (state.cat==='전체' || p.c===state.cat) && inRegion(p, state.region));
+  // 검색어가 있으면 음식점·카페·편의점과 카테고리를 가리지 않고 전체에서 찾아요 (지역 탭은 유지)
+  const all = ts.length > 0;
+  const list = PLACES.filter(p => (all || p.ty===state.ty) && hits(p,ts)
+    && (all || state.cat==='전체' || p.c===state.cat) && inRegion(p, state.region));
   if (state.sort === 'n') list.sort((a,b) => a.n.localeCompare(b.n, 'ko'));
   if (state.sort === 'd') list.sort(isH() ? (a,b) => a.hw - b.hw : (a,b) => (a.w||99) - (b.w||99));
   return list;
@@ -301,17 +304,19 @@ let current = [];
 function render(){
   const T = TYPES[state.ty];
   document.title = `멋사 식권대장 ver. vinnie · ${T.name}`;
+  const ts = terms(), all = ts.length > 0, cnt = {}, rc = {}, tc = {};
+  PLACES.forEach(p => { if (hits(p,ts) && inRegion(p, state.region)) tc[p.ty]=(tc[p.ty]||0)+1; });
   $('types').innerHTML = Object.entries(TYPES).map(([k,t]) =>
-    `<button class="${state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${COUNT[k]||0}</span></button>`).join('');
-  $('title').textContent = T.title;
-  $('sub').textContent = `식권대장 ${T.name} ${COUNT[state.ty]}곳`;
+    `<button class="${!all && state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${all ? (tc[k]||0) : (COUNT[k]||0)}</span></button>`).join('');
+  $('title').textContent = all ? `‘${state.q.trim()}’ 검색 결과` : T.title;
+  $('sub').textContent = all ? '음식점·카페·편의점 전체에서 찾았어요' : `식권대장 ${T.name} ${COUNT[state.ty]}곳`;
   $('q').placeholder = T.ph;
-  $('pick').hidden = !T.pick;
+  $('pick').hidden = !all && !T.pick;
+  $('chips').hidden = all;
 
-  const ts = terms(), cnt = {}, rc = {};
   PLACES.forEach(p => {
-    if (p.ty!==state.ty || !hits(p,ts)) return;
-    if (state.cat==='전체' || p.c===state.cat) { rc[p.s]=(rc[p.s]||0)+1; rc['전체']=(rc['전체']||0)+1; if (p.hw <= HANDOK_MAX) rc['한독빌딩']=(rc['한독빌딩']||0)+1; }
+    if ((!all && p.ty!==state.ty) || !hits(p,ts)) return;
+    if (all || state.cat==='전체' || p.c===state.cat) { rc[p.s]=(rc[p.s]||0)+1; rc['전체']=(rc['전체']||0)+1; if (p.hw <= HANDOK_MAX) rc['한독빌딩']=(rc['한독빌딩']||0)+1; }
     if (inRegion(p, state.region)) { cnt[p.c]=(cnt[p.c]||0)+1; cnt['전체']=(cnt['전체']||0)+1; }
   });
   $('regions').innerHTML = REGIONS.map(r =>
@@ -330,7 +335,7 @@ function render(){
 }
 
 function setType(t){
-  if (!TYPES[t] || t===state.ty) return;
+  if (!TYPES[t] || (t===state.ty && !state.q)) return;
   state.ty = t; state.cat = '전체'; state.q = ''; $('q').value = '';
   if (location.hash.slice(1) !== t) history.replaceState(null, '', '#'+t);
   render(); window.scrollTo({top:0});
@@ -360,7 +365,7 @@ function showDetail(p, isPick){
   $('spot').innerHTML = `
     <div class="thumb">${img(p, true)}</div>
     <div class="body">
-      ${isPick ? `<div class="label">${TYPES[state.ty].pick}</div>` : ''}
+      ${isPick ? `<div class="label">${TYPES[p.ty].pick || '여기 어때요?'}</div>` : ''}
       <h2>${esc(p.n)}</h2>
       <div class="desc">${esc(p.kcl)}${p.sum&&p.sum[0]?' · '+esc(p.sum[0]):''}</div>
       <dl class="kv">
