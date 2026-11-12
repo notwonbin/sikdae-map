@@ -36,7 +36,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webki
 /* header */
 header{padding:44px 0 22px}
 .seg{display:inline-flex;background:var(--g100);border-radius:12px;padding:4px;gap:2px}
-.seg button{height:36px;padding:0 16px;border-radius:9px;font-size:15px;font-weight:600;color:var(--g600);transition:background .15s,color .15s,box-shadow .15s}
+.seg button{height:36px;padding:0 16px;white-space:nowrap;border-radius:9px;font-size:15px;font-weight:600;color:var(--g600);transition:background .15s,color .15s,box-shadow .15s}
 .seg button span{font-weight:500;color:var(--g400);margin-left:4px;font-size:14px}
 .seg button.on{background:#fff;color:var(--g900);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .seg button.on span{color:var(--g500)}
@@ -96,7 +96,20 @@ h1{font-size:28px;line-height:1.36;font-weight:700;margin-top:22px;color:var(--g
 
 /* grid */
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 16px;padding-bottom:96px}
-.card{display:block;min-width:0;width:100%;text-align:left;cursor:pointer}
+.card{display:block;min-width:0;width:100%;text-align:left;cursor:pointer;position:relative}
+.fav{position:absolute;z-index:3;top:8px;right:8px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;transition:transform .15s}
+.fav:active{transform:scale(.85)}
+.fav svg path{fill:rgba(0,0,0,.18);stroke:#fff;stroke-width:1.8;transition:fill .15s}
+.fav.on svg path{fill:#F04452;stroke:#F04452}
+.fav.pop{animation:pop .35s cubic-bezier(.2,.8,.2,1.4)}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.sheet .fav{top:14px;right:14px;width:40px;height:40px;background:rgba(0,0,0,.25);backdrop-filter:blur(6px)}
+.sheet .fav svg path{fill:transparent}
+.sheet .fav.on svg path{fill:#F04452}
+.sheet{position:relative}
+.toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);z-index:60;background:rgba(25,31,40,.92);color:#fff;font-size:14px;font-weight:600;
+  padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;white-space:nowrap}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 .card:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:16px}
 .thumb{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:var(--g100);transition:transform .1s}
 .thumb::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);z-index:2;pointer-events:none}
@@ -154,7 +167,8 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
   .wrap{padding:0 20px}
   header{padding:24px 0 16px}
   .seg{display:flex}
-  .seg button{flex:1;padding:0 8px}
+  .seg button{flex:1;padding:0 4px;font-size:14px;white-space:nowrap}
+  .seg button span{margin-left:3px;font-size:13px}
   h1{font-size:24px;margin-top:20px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}
   .btn{padding:0 14px}
@@ -213,18 +227,21 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
   <div class="meta">
     <div class="count" id="count"></div>
     <div class="sort" id="sort">
-      <button data-s="o">저장순</button><i></i><button data-s="d">가까운순</button><i></i><button data-s="n">이름순</button>
+      <button data-s="d">가까운순</button><i></i><button data-s="n">이름순</button>
     </div>
   </div>
   <div class="grid" id="grid"></div>
   <footer><b style="font-weight:600;color:var(--g600)">2026년 11월 12일 업데이트</b><br>사진과 장소 정보는 카카오맵 기준이에요. 도보 시간은 가장 가까운 지하철역 출구 기준이고, 한독빌딩 기준 시간은 직선거리로 계산한 대략적인 값이에요.</footer>
 </div>
 
+<div class="toast" id="toast"></div>
 <div class="dim" id="dim"><div class="sheet" id="spot"></div></div>
 
 <script src="data.js"></script>
 <script>
 const TYPES = {
+  fav:  { name:'찜', title:'자주 가는 곳', ph:'찜한 곳 검색', pick:'찜한 곳 중에 여기 어때요?',
+    cats:[['food','음식점'],['cafe','카페'],['cvs','편의점']], fav:true },
   food: { name:'음식점', title:'오늘 점심, 어디서 먹을까요?', ph:'메뉴, 가게 이름 검색', pick:'오늘은 여기 어때요?',
     cats:[['한식','한식'],['고기','고기·구이'],['국밥','국밥·탕'],['찌개','찌개'],['면','면·국수'],['일식','일식'],['중식','중식'],['양식','양식'],['아시안','아시안'],['분식','분식'],['샐러드','샐러드'],['닭','닭요리'],['해산물','해산물'],['샤브','샤브샤브']] },
   cafe: { name:'카페', title:'커피 한 잔, 어디로 갈까요?', ph:'카페, 브랜드, 메뉴 검색', pick:'여기서 한 잔 어때요?',
@@ -262,7 +279,26 @@ PLACES.forEach((p,i) => {
 });
 const COUNT = {}; PLACES.forEach(p => COUNT[p.ty]=(COUNT[p.ty]||0)+1);
 
-const state = { ty:'food', q:'', cat:'전체', region:'전체', sort:'o' };
+// 찜(자주 가는 곳): 이 브라우저에만 저장돼요
+let FAVS = new Set();
+try { FAVS = new Set(JSON.parse(localStorage.getItem('sikdae-favs') || '[]')); } catch(e){}
+const saveFavs = () => { try { localStorage.setItem('sikdae-favs', JSON.stringify([...FAVS])); } catch(e){} };
+const isFav = p => FAVS.has(p.id);
+const inType = p => TYPES[state.ty].fav ? isFav(p) : p.ty===state.ty;
+const inCat = p => state.cat==='전체' || (TYPES[state.ty].fav ? p.ty===state.cat : p.c===state.cat);
+const catOf = p => TYPES[state.ty].fav ? p.ty : p.c;
+const heart = (p) => `<button type="button" class="fav ${isFav(p)?'on':''}" data-fav="${p.id}" aria-label="찜하기"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 20.3s-7.6-4.6-9.4-9.3C1.4 7.7 3.4 4.5 6.7 4.2c2-.2 3.9.8 5.3 2.6 1.4-1.8 3.3-2.8 5.3-2.6 3.3.3 5.3 3.5 4.1 6.8-1.8 4.7-9.4 9.3-9.4 9.3z"/></svg></button>`;
+let toastT;
+function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),1600); }
+function toggleFav(id){
+  const p = BYID[id]; if (!p) return;
+  if (FAVS.has(id)) { FAVS.delete(id); toast('찜을 해제했어요'); } else { FAVS.add(id); toast('찜했어요 · 상단 ‘찜’ 탭에서 모아 볼 수 있어요'); }
+  saveFavs();
+  document.querySelectorAll(`[data-fav="${id}"]`).forEach(b => { b.classList.toggle('on', FAVS.has(id)); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); });
+  renderCounts();
+}
+
+const state = { ty:'food', q:'', cat:'전체', region:'전체', sort:'d' };
 try { localStorage.removeItem('sikdae'); } catch(e){} // 예전에 저장된 지역·정렬 기억 지우기 — 항상 전체 지역으로 시작
 const fromHash = () => { const h = location.hash.slice(1); if (TYPES[h]) state.ty = h; };
 fromHash();
@@ -275,7 +311,7 @@ function filtered(){
   // 검색어가 있으면 음식점·카페·편의점, 카테고리, 지역을 가리지 않고 전체에서 찾아요
   const all = ts.length > 0;
   const list = PLACES.filter(p => hits(p,ts) && (all ||
-    (p.ty===state.ty && (state.cat==='전체' || p.c===state.cat) && inRegion(p, state.region))));
+    (inType(p) && inCat(p) && inRegion(p, state.region))));
   if (state.sort === 'n') list.sort((a,b) => a.n.localeCompare(b.n, 'ko'));
   if (state.sort === 'd') list.sort(isH() ? (a,b) => a.hw - b.hw : (a,b) => (a.w||99) - (b.w||99));
   return list;
@@ -294,34 +330,34 @@ const img = (p, eager) => p.img
   : `<div class="ph">${esc(p.base.slice(0,2))}</div>`;
 
 function card(p, i){
-  return `<button type="button" class="card" data-id="${p.id}">
+  return `<div class="card" role="button" tabindex="0" data-id="${p.id}">
+    ${heart(p)}
     <div class="thumb">${img(p, i < 8)}</div>
     <div class="info">
       <div class="name">${hl(p.base)}${p.branch?`<small>${esc(p.branch)}</small>`:''}</div>
       <div class="desc"><b>${hl(p.kcl)}</b><i></i>${isH() ? `한독빌딩 ${p.hw}분` : p.walk}</div>
     </div>
-  </button>`;
+  </div>`;
 }
 
 let current = [];
 function render(){
   const T = TYPES[state.ty];
   document.title = `멋사 식권대장 ver. vinnie · ${T.name}`;
-  const ts = terms(), all = ts.length > 0, cnt = {}, rc = {}, tc = {};
-  PLACES.forEach(p => { if (hits(p,ts)) tc[p.ty]=(tc[p.ty]||0)+1; });
-  $('types').innerHTML = Object.entries(TYPES).map(([k,t]) =>
-    `<button class="${!all && state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${all ? (tc[k]||0) : (COUNT[k]||0)}</span></button>`).join('');
+  const ts = terms(), all = ts.length > 0, cnt = {}, rc = {};
+  renderCounts();
   $('title').textContent = all ? `‘${state.q.trim()}’ 검색 결과` : T.title;
-  $('sub').textContent = all ? '음식점·카페·편의점 전체에서 찾았어요' : `식권대장 ${T.name} ${COUNT[state.ty]}곳 · ${UPDATED} 업데이트`;
+  $('sub').textContent = all ? '음식점·카페·편의점 전체에서 찾았어요'
+    : T.fav ? `찜한 곳 ${FAVS.size}곳 · 이 브라우저에 저장돼요` : `식권대장 ${T.name} ${COUNT[state.ty]}곳 · ${UPDATED} 업데이트`;
   $('q').placeholder = T.ph;
   $('pick').hidden = !all && !T.pick;
   $('chips').hidden = all;
   $('regions').hidden = all;
 
   PLACES.forEach(p => {
-    if ((!all && p.ty!==state.ty) || !hits(p,ts)) return;
-    if (all || state.cat==='전체' || p.c===state.cat) { rc[p.s]=(rc[p.s]||0)+1; rc['전체']=(rc['전체']||0)+1; if (p.hw <= HANDOK_MAX) rc['한독빌딩']=(rc['한독빌딩']||0)+1; }
-    if (inRegion(p, state.region)) { cnt[p.c]=(cnt[p.c]||0)+1; cnt['전체']=(cnt['전체']||0)+1; }
+    if ((!all && !inType(p)) || !hits(p,ts)) return;
+    if (all || inCat(p)) { rc[p.s]=(rc[p.s]||0)+1; rc['전체']=(rc['전체']||0)+1; if (p.hw <= HANDOK_MAX) rc['한독빌딩']=(rc['한독빌딩']||0)+1; }
+    if (inRegion(p, state.region)) { const c = catOf(p); cnt[c]=(cnt[c]||0)+1; cnt['전체']=(cnt['전체']||0)+1; }
   });
   $('regions').innerHTML = REGIONS.map(r =>
     `<button class="region ${state.region===r?'on':''}" data-r="${r}">${r==='전체'?'전체 지역':r==='한독빌딩'?'한독빌딩 근처':r}<span>${rc[r]||0}</span></button>`).join('');
@@ -334,9 +370,19 @@ function render(){
     ? `${current.length}곳을 찾았어요` : `전체 ${current.length}곳`;
   [...$('sort').querySelectorAll('button')].forEach(b => b.classList.toggle('on', b.dataset.s===state.sort));
   $('grid').innerHTML = current.length ? current.map(card).join('')
-    : `<div class="empty"><h3>검색 결과가 없어요</h3><p>다른 이름으로 검색해 보세요</p></div>`;
+    : (T.fav && !all && FAVS.size===0)
+      ? `<div class="empty"><h3>아직 찜한 곳이 없어요</h3><p>카드 오른쪽 위 하트를 눌러 자주 가는 곳을 모아 보세요</p></div>`
+      : `<div class="empty"><h3>검색 결과가 없어요</h3><p>다른 이름으로 검색해 보세요</p></div>`;
 }
 
+function renderCounts(){
+  const ts = terms(), all = ts.length > 0, tc = {};
+  PLACES.forEach(p => { if (hits(p,ts)) { tc[p.ty]=(tc[p.ty]||0)+1; if (isFav(p)) tc.fav=(tc.fav||0)+1; } });
+  const base = { ...COUNT, fav: FAVS.size };
+  $('types').innerHTML = ['food','cafe','cvs','fav'].map(k =>
+    `<button class="${!all && state.ty===k?'on':''}" data-t="${k}">${TYPES[k].name}<span>${all ? (tc[k]||0) : (base[k]||0)}</span></button>`).join('');
+  if (TYPES[state.ty].fav && !all) $('sub').textContent = `찜한 곳 ${FAVS.size}곳 · 이 브라우저에 저장돼요`;
+}
 function setType(t){
   if (!TYPES[t] || (t===state.ty && !state.q)) return;
   state.ty = t; state.cat = '전체'; state.q = ''; $('q').value = '';
@@ -360,12 +406,14 @@ new IntersectionObserver(([en]) => $('bar').classList.toggle('stuck', en.interse
 
 const BYID = Object.fromEntries(PLACES.map(p => [p.id, p]));
 function spotlight(){
-  const pool = current.length ? current : PLACES.filter(p => p.ty===state.ty);
+  const pool = current.length ? current : PLACES.filter(inType);
+  if (!pool.length) { toast('먼저 하트를 눌러 찜해 주세요'); return; }
   showDetail(pool[Math.floor(Math.random()*pool.length)], true);
 }
 function showDetail(p, isPick){
   const rec = p.sum && p.sum[1] && /추천/.test(p.sum[1]) ? p.sum[1].replace(/\s*추천$/,'') : '';
   $('spot').innerHTML = `
+    ${heart(p)}
     <div class="thumb">${img(p, true)}</div>
     <div class="body">
       ${isPick ? `<div class="label">${TYPES[p.ty].pick || '여기 어때요?'}</div>` : ''}
@@ -388,7 +436,12 @@ function showDetail(p, isPick){
 }
 function close(){ $('dim').classList.remove('on'); }
 $('pick').addEventListener('click', spotlight);
-$('grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) showDetail(BYID[c.dataset.id], false); });
+$('grid').addEventListener('click', e => {
+  const f = e.target.closest('.fav'); if (f) { toggleFav(f.dataset.fav); if (TYPES[state.ty].fav && !state.q) setTimeout(render, 250); return; }
+  const c = e.target.closest('.card'); if (c) showDetail(BYID[c.dataset.id], false);
+});
+$('grid').addEventListener('keydown', e => { if ((e.key==='Enter'||e.key===' ') && e.target.classList.contains('card')) { e.preventDefault(); showDetail(BYID[e.target.dataset.id], false); } });
+$('spot').addEventListener('click', e => { const f = e.target.closest('.fav'); if (f) { toggleFav(f.dataset.fav); if (TYPES[state.ty].fav && !state.q) render(); } });
 $('dim').addEventListener('click', e => { if (e.target === $('dim')) close(); });
 
 render();
