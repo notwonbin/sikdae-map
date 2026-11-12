@@ -134,7 +134,7 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
 .kv dd{color:var(--g800)}
 .acts{display:flex;gap:8px;margin-top:22px}
 .acts .btn{flex:1;min-width:0;height:54px;padding:0 10px;font-size:16px;border-radius:16px;display:grid;place-items:center}
-.acts .btn-weak{flex:0 0 auto;padding:0 18px}
+.acts .btn-weak{flex:0 0 auto;padding:0 22px}
 
 /* intro splash */
 .intro{position:fixed;inset:0;z-index:100;background:#fff;display:grid;place-items:center;text-align:center;
@@ -351,12 +351,6 @@ document.addEventListener('keydown', e => {
 new IntersectionObserver(([en]) => $('bar').classList.toggle('stuck', en.intersectionRatio === 0)).observe(document.querySelector('header'));
 
 const BYID = Object.fromEntries(PLACES.map(p => [p.id, p]));
-// 네이버 지도는 장소 ID가 달라서 이름으로 검색해요. 지점명이 없는 가게는 동 이름을 붙여 정확도를 높여요.
-function naverUrl(p){
-  const dong = (p.a.match(/\(([^)]*동)\)\s*$/) || [])[1] || '';
-  const q = p.branch ? p.n : `${p.n} ${dong}`.trim();
-  return 'https://map.naver.com/p/search/' + encodeURIComponent(q);
-}
 function spotlight(){
   const pool = current.length ? current : PLACES.filter(p => p.ty===state.ty);
   showDetail(pool[Math.floor(Math.random()*pool.length)], true);
@@ -378,8 +372,7 @@ function showDetail(p, isPick){
       </dl>
       <div class="acts">
         <button class="btn btn-weak" id="again">${isPick ? '다시 고르기' : '닫기'}</button>
-        <a class="btn btn-primary" href="https://place.map.kakao.com/${p.id}" target="_blank" rel="noopener">카카오맵</a>
-        <a class="btn btn-primary" href="${naverUrl(p)}" target="_blank" rel="noopener">네이버 지도</a>
+        <a class="btn btn-primary" href="https://place.map.kakao.com/${p.id}" target="_blank" rel="noopener">카카오맵에서 보기</a>
       </div>
     </div>`;
   $('dim').classList.add('on');
