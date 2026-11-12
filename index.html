@@ -357,7 +357,7 @@ function render(){
   renderCounts();
   $('title').textContent = all ? `‘${state.q.trim()}’ 검색 결과` : T.title;
   $('sub').textContent = all ? '음식점·카페·편의점 전체에서 찾았어요'
-    : T.fav ? `찜한 곳 ${FAVS.size}곳 · 이 브라우저에 저장돼요` : '';
+    : '';
   $('sub').hidden = !$('sub').textContent;
   $('q').placeholder = T.ph;
   $('pick').hidden = !all && !T.pick;
@@ -391,7 +391,6 @@ function renderCounts(){
   const base = { ...COUNT, fav: FAVS.size };
   $('types').innerHTML = ['food','cafe','cvs','fav'].map(k =>
     `<button class="${!all && state.ty===k?'on':''}" data-t="${k}">${TYPES[k].name}<span>${all ? (tc[k]||0) : (base[k]||0)}</span></button>`).join('');
-  if (TYPES[state.ty].fav && !all) $('sub').textContent = `찜한 곳 ${FAVS.size}곳 · 이 브라우저에 저장돼요`;
 }
 function setType(t){
   if (!TYPES[t] || (t===state.ty && !state.q)) return;
