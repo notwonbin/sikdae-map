@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>식권대장 가맹점 찾기</title>
+<meta name="description" content="식권대장으로 결제할 수 있는 강남·역삼 음식점, 카페, 편의점을 사진과 함께 찾아보세요.">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --blue:#3182F6; --blue-hover:#1B64DA; --blue-press:#1957C2;
+  --g900:#191F28; --g800:#333D4B; --g700:#4E5968; --g600:#6B7684; --g500:#8B95A1;
+  --g400:#B0B8C1; --g300:#D1D6DB; --g200:#E5E8EB; --g100:#F2F4F6; --g50:#F9FAFB;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+  background:#fff;color:var(--g900);-webkit-font-smoothing:antialiased;letter-spacing:-0.02em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+/* header */
+header{padding:44px 0 22px}
+.seg{display:inline-flex;background:var(--g100);border-radius:12px;padding:4px;gap:2px}
+.seg button{height:36px;padding:0 16px;border-radius:9px;font-size:15px;font-weight:600;color:var(--g600);transition:background .15s,color .15s,box-shadow .15s}
+.seg button span{font-weight:500;color:var(--g400);margin-left:4px;font-size:14px}
+.seg button.on{background:#fff;color:var(--g900);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg button.on span{color:var(--g500)}
+h1{font-size:28px;line-height:1.36;font-weight:700;margin-top:22px;color:var(--g900)}
+.sub{font-size:15px;color:var(--g600);margin-top:6px}
+
+/* sticky controls */
+.bar{position:sticky;top:0;z-index:20;background:#fff;padding:12px 0 0}
+.bar.stuck{box-shadow:0 1px 0 var(--g100)}
+.row{display:flex;gap:8px}
+.search{flex:1;position:relative;display:block}
+.search svg.i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--g400)}
+.search input{width:100%;height:48px;border:0;border-radius:14px;background:var(--g100);
+  padding:0 44px 0 46px;font:inherit;font-size:16px;font-weight:500;color:var(--g900);outline:none;transition:box-shadow .15s}
+.search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+.search input::placeholder{color:var(--g400);font-weight:500}
+.search input:focus{box-shadow:inset 0 0 0 2px var(--blue)}
+.clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;
+  display:none;place-items:center;background:var(--g400);color:#fff}
+.clear.on{display:grid}
+.btn{height:48px;padding:0 18px;border-radius:14px;font-size:15px;font-weight:600;white-space:nowrap;transition:background .15s, transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.btn-primary:active{background:var(--blue-press)}
+.btn-weak{background:#E8F3FF;color:var(--blue)}
+.btn-weak:hover{background:#D6E8FF}
+.btn[hidden]{display:none}
+
+.regions{display:flex;gap:20px;margin-top:16px;border-bottom:1px solid var(--g100);overflow-x:auto;scrollbar-width:none}
+.regions::-webkit-scrollbar{display:none}
+.region{flex:none;position:relative;height:40px;font-size:16px;font-weight:600;color:var(--g500);transition:color .15s}
+.region span{font-size:14px;font-weight:500;margin-left:4px;color:var(--g400)}
+.region:hover{color:var(--g700)}
+.region.on{color:var(--g900)}
+.region.on span{color:var(--g600)}
+.region.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--g900);border-radius:1px}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:14px 0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;height:34px;padding:0 13px;border-radius:17px;font-size:14px;font-weight:600;color:var(--g700);
+  background:var(--g100);transition:background .15s,color .15s;display:inline-flex;align-items:center;gap:5px}
+.tab span{font-weight:500;color:var(--g500);font-size:13px}
+.tab:hover{background:var(--g200)}
+.tab.on{background:var(--g900);color:#fff}
+.tab.on span{color:var(--g400)}
+.tab.zero{color:var(--g400)}
+
+/* list header */
+.meta{display:flex;justify-content:space-between;align-items:center;margin:18px 0 16px}
+.count{font-size:17px;font-weight:700;color:var(--g900)}
+.sort{display:flex;align-items:center;gap:12px}
+.sort button{font-size:14px;font-weight:500;color:var(--g500)}
+.sort button.on{color:var(--g900);font-weight:600}
+.sort i{width:1px;height:10px;background:var(--g300)}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 16px;padding-bottom:96px}
+.card{display:block;min-width:0;width:100%;text-align:left;cursor:pointer}
+.card:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:16px}
+.thumb{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:var(--g100);transition:transform .1s}
+.thumb::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);z-index:2;pointer-events:none}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.card:hover .thumb img{transform:scale(1.03)}
+.card:active .thumb{transform:scale(.98)}
+.ph{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:700;color:var(--g400);background:var(--g100)}
+.info{padding:12px 2px 0}
+.name{font-size:16px;font-weight:600;line-height:1.4;color:var(--g900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name small{font-size:14px;font-weight:500;color:var(--g500);margin-left:4px}
+.desc{font-size:14px;line-height:1.45;color:var(--g600);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desc b{font-weight:500;color:var(--g700)}
+.desc i{display:inline-block;width:2px;height:2px;border-radius:50%;background:var(--g400);vertical-align:middle;margin:0 6px}
+mark{background:var(--g200);color:var(--g900);border-radius:4px;padding:0 2px;margin:0 -1px}
+
+.empty{grid-column:1/-1;text-align:center;padding:96px 0}
+.empty h3{font-size:18px;font-weight:700;color:var(--g800)}
+.empty p{font-size:15px;color:var(--g500);margin-top:6px}
+
+footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-height:1.6;color:var(--g500)}
+
+/* sheet */
+.dim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.dim.on{opacity:1;pointer-events:auto}
+.sheet{width:min(400px,100%);background:#fff;border-radius:24px;overflow:hidden;transform:translateY(16px);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.dim.on .sheet{transform:none}
+.sheet .thumb{border-radius:0;aspect-ratio:16/10}
+.sheet .thumb::after{display:none}
+.sheet .body{padding:24px 24px 20px}
+.sheet .label{font-size:14px;font-weight:600;color:var(--blue)}
+.sheet h2{font-size:22px;font-weight:700;line-height:1.36;margin-top:6px}
+.sheet .desc{white-space:normal;margin-top:6px}
+.kv{margin-top:18px;border-top:1px solid var(--g100);padding-top:14px;display:grid;grid-template-columns:64px 1fr;row-gap:8px;font-size:14px;line-height:1.5}
+.kv dt{color:var(--g500)}
+.kv dd{color:var(--g800)}
+.acts{display:flex;gap:8px;margin-top:22px}
+.acts .btn{flex:1;min-width:0;height:54px;padding:0 10px;font-size:16px;border-radius:16px;display:grid;place-items:center}
+.acts .btn-weak{flex:0 0 auto;padding:0 18px}
+
+@media (max-width:900px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:640px){
+  .wrap{padding:0 20px}
+  header{padding:24px 0 16px}
+  .seg{display:flex}
+  .seg button{flex:1;padding:0 8px}
+  h1{font-size:24px;margin-top:20px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}
+  .btn{padding:0 14px}
+  .name{font-size:15px}
+  .desc{font-size:13px}
+  .dim{align-items:flex-end;padding:0}
+  .sheet{width:100%;border-radius:24px 24px 0 0;transform:translateY(100%);padding-bottom:env(safe-area-inset-bottom)}
+  .sheet .thumb{aspect-ratio:16/9}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="seg" id="types"></div>
+    <h1 id="title"></h1>
+    <p class="sub" id="sub"></p>
+  </header>
+</div>
+
+<div class="bar" id="bar">
+  <div class="wrap">
+    <div class="row">
+      <label class="search">
+        <svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false">
+        <button class="clear" id="clear" aria-label="지우기"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </label>
+      <button class="btn btn-primary" id="pick">추천받기</button>
+    </div>
+    <div class="regions" id="regions"></div>
+    <div class="tabs" id="chips"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="meta">
+    <div class="count" id="count"></div>
+    <div class="sort" id="sort">
+      <button data-s="o">저장순</button><i></i><button data-s="d">가까운순</button><i></i><button data-s="n">이름순</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <footer>사진과 장소 정보는 카카오맵 기준이에요. 도보 시간은 가장 가까운 지하철역 출구 기준이고, 한독빌딩 기준 시간은 직선거리로 계산한 대략적인 값이에요.</footer>
+</div>
+
+<div class="dim" id="dim"><div class="sheet" id="spot"></div></div>
+
+<script src="data.js"></script>
+<script>
+const TYPES = {
+  food: { name:'음식점', title:'오늘 점심, 어디서 먹을까요?', ph:'메뉴, 가게 이름 검색', pick:'오늘은 여기 어때요?',
+    cats:[['한식','한식'],['고기','고기·구이'],['국밥','국밥·탕'],['찌개','찌개'],['면','면·국수'],['일식','일식'],['중식','중식'],['양식','양식'],['아시안','아시안'],['분식','분식'],['샐러드','샐러드'],['닭','닭요리'],['해산물','해산물'],['샤브','샤브샤브']] },
+  cafe: { name:'카페', title:'커피 한 잔, 어디로 갈까요?', ph:'카페, 브랜드, 메뉴 검색', pick:'여기서 한 잔 어때요?',
+    cats:[['커피','커피'],['베이커리','베이커리'],['디저트','디저트'],['음료','음료']] },
+  cvs:  { name:'편의점', title:'가까운 편의점을 찾아볼까요?', ph:'편의점 이름 검색', pick:'',
+    cats:[['GS25','GS25'],['CU','CU'],['세븐일레븐','세븐일레븐'],['이마트24','이마트24'],['기타','기타']] },
+};
+const REGIONS = ['전체','한독빌딩','강남역','역삼역','신논현역','언주역'];
+const HANDOK_MAX = 10; // 한독빌딩 근처: 도보 10분 이내
+const inRegion = (p, r) => r==='전체' || (r==='한독빌딩' ? p.hw <= HANDOK_MAX : p.s===r);
+const isH = () => state.region==='전체' || state.region==='한독빌딩'; // 전체·한독빌딩 탭은 한독빌딩 기준 거리
+const SYN = {
+  '국수':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시'],
+  '면':['국수','칼국수','막국수','냉면','쌀국수','우육면','수제비','소바','라멘','면요리','탄탄면','국시','우동','짬뽕','짜장면'],
+  '고기':['고기','구이','갈비','삼겹','한우','소고기','돼지','불백','제육','족발','보쌈','스테이크'],
+  '햄버거':['버거'],'돈가스':['돈까스'],'초밥':['스시','초밥'],'짜장':['짜장면'],'회':['회','물회','막회','참치'],
+  '카레':['카레','커리'],'커리':['카레','커리'],'베트남':['베트남','쌀국수'],'닭':['닭','치킨','삼계탕'],
+  '빵':['빵','베이커리','베이글','도넛','와플'],'세븐':['세븐일레븐'],'gs':['gs25'],'씨유':['cu'],'스벅':['스타벅스'],
+};
+
+const norm = s => (s||'').toLowerCase().replace(/\s+/g,'');
+const short = a => a.replace(/^서울\s+(강남구|서초구)\s+/,'').replace(/\s*\([^)]*\)\s*$/,'');
+const esc = s => (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+
+const LBL = {}; Object.values(TYPES).forEach(t => t.cats.forEach(([k,l]) => LBL[k]=l));
+PLACES.forEach((p,i) => {
+  p.o = i;
+  p.kcl = (p.kc||'').replace(/,/g,'·');
+  p.hay = norm([p.n, p.c, LBL[p.c], p.kc, (p.t||[]).join(' '), (p.kt||[]).join(' '), (p.sum||[]).join(' '), p.a, p.m].join(' '));
+  p.base = p.n.replace(/\s+\S*(점|본점|직영점|호점)$/,'');
+  p.branch = p.base !== p.n ? p.n.slice(p.base.length).trim() : '';
+  p.walk = p.w ? `${p.s} ${p.w}분` : `${p.s} 인근`;
+});
+const COUNT = {}; PLACES.forEach(p => COUNT[p.ty]=(COUNT[p.ty]||0)+1);
+
+const state = { ty:'food', q:'', cat:'전체', region:'전체', sort:'o' };
+try { const s = JSON.parse(localStorage.getItem('sikdae') || '{}'); if (s.region) state.region = s.region; if (s.sort) state.sort = s.sort; } catch(e){}
+const fromHash = () => { const h = location.hash.slice(1); if (TYPES[h]) state.ty = h; };
+fromHash();
+
+function terms(){ return state.q.trim().split(/\s+/).filter(Boolean).map(t => { const n = norm(t); return SYN[n] || [n]; }); }
+const hits = (p, ts) => ts.every(alts => alts.some(a => p.hay.includes(a)));
+
+function filtered(){
+  const ts = terms();
+  const list = PLACES.filter(p => p.ty===state.ty && hits(p,ts)
+    && (state.cat==='전체' || p.c===state.cat) && inRegion(p, state.region));
+  if (state.sort === 'n') list.sort((a,b) => a.n.localeCompare(b.n, 'ko'));
+  if (state.sort === 'd') list.sort(isH() ? (a,b) => a.hw - b.hw : (a,b) => (a.w||99) - (b.w||99));
+  return list;
+}
+
+function hl(text){
+  let out = esc(text);
+  terms().flat().filter(Boolean).forEach(t => {
+    const re = new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+    out = out.replace(re, m => `<mark>${m}</mark>`);
+  });
+  return out;
+}
+const img = (p, eager) => p.img
+  ? `<img src="thumbs/${p.id}.webp" alt="" width="320" height="240" ${eager?'':'loading="lazy"'} decoding="async">`
+  : `<div class="ph">${esc(p.base.slice(0,2))}</div>`;
+
+function card(p, i){
+  return `<button type="button" class="card" data-id="${p.id}">
+    <div class="thumb">${img(p, i < 8)}</div>
+    <div class="info">
+      <div class="name">${hl(p.base)}${p.branch?`<small>${esc(p.branch)}</small>`:''}</div>
+      <div class="desc"><b>${hl(p.kcl)}</b><i></i>${isH() ? `한독빌딩 ${p.hw}분` : p.walk}</div>
+    </div>
+  </button>`;
+}
+
+let current = [];
+function render(){
+  const T = TYPES[state.ty];
+  document.title = `식권대장 ${T.name} 찾기`;
+  $('types').innerHTML = Object.entries(TYPES).map(([k,t]) =>
+    `<button class="${state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${COUNT[k]||0}</span></button>`).join('');
+  $('title').textContent = T.title;
+  $('sub').textContent = `식권대장 ${T.name} ${COUNT[state.ty]}곳`;
+  $('q').placeholder = T.ph;
+  $('pick').hidden = !T.pick;
+
+  const ts = terms(), cnt = {}, rc = {};
+  PLACES.forEach(p => {
+    if (p.ty!==state.ty || !hits(p,ts)) return;
+    if (state.cat==='전체' || p.c===state.cat) { rc[p.s]=(rc[p.s]||0)+1; rc['전체']=(rc['전체']||0)+1; if (p.hw <= HANDOK_MAX) rc['한독빌딩']=(rc['한독빌딩']||0)+1; }
+    if (inRegion(p, state.region)) { cnt[p.c]=(cnt[p.c]||0)+1; cnt['전체']=(cnt['전체']||0)+1; }
+  });
+  $('regions').innerHTML = REGIONS.map(r =>
+    `<button class="region ${state.region===r?'on':''}" data-r="${r}">${r==='전체'?'전체 지역':r==='한독빌딩'?'한독빌딩 근처':r}<span>${rc[r]||0}</span></button>`).join('');
+  $('chips').innerHTML = [['전체','전체'], ...T.cats].map(([c,l]) =>
+    `<button class="tab ${state.cat===c?'on':''} ${!cnt[c]?'zero':''}" data-c="${c}">${l}<span>${cnt[c]||0}</span></button>`).join('');
+
+  current = filtered();
+  $('clear').classList.toggle('on', !!state.q);
+  $('count').textContent = (state.q || state.cat!=='전체' || state.region!=='전체')
+    ? `${current.length}곳을 찾았어요` : `전체 ${current.length}곳`;
+  [...$('sort').querySelectorAll('button')].forEach(b => b.classList.toggle('on', b.dataset.s===state.sort));
+  $('grid').innerHTML = current.length ? current.map(card).join('')
+    : `<div class="empty"><h3>검색 결과가 없어요</h3><p>다른 이름으로 검색해 보세요</p></div>`;
+  try { localStorage.setItem('sikdae', JSON.stringify({region:state.region, sort:state.sort})); } catch(e){}
+}
+
+function setType(t){
+  if (!TYPES[t] || t===state.ty) return;
+  state.ty = t; state.cat = '전체'; state.q = ''; $('q').value = '';
+  if (location.hash.slice(1) !== t) history.replaceState(null, '', '#'+t);
+  render(); window.scrollTo({top:0});
+}
+
+let timer;
+$('q').addEventListener('input', e => { state.q = e.target.value; clearTimeout(timer); timer = setTimeout(render, 90); });
+$('clear').addEventListener('click', e => { e.preventDefault(); state.q=''; $('q').value=''; render(); $('q').focus(); });
+$('types').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setType(b.dataset.t); });
+$('chips').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b) return; state.cat = b.dataset.c; render(); });
+$('regions').addEventListener('click', e => { const b = e.target.closest('.region'); if (!b) return; state.region = b.dataset.r; if (state.region==='한독빌딩') state.sort = 'd'; render(); });
+$('sort').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.sort = b.dataset.s; render(); });
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (TYPES[h]) setType(h); });
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== $('q')) { e.preventDefault(); $('q').focus(); }
+  if (e.key === 'Escape') { if ($('dim').classList.contains('on')) close(); else if (state.q) $('clear').click(); }
+});
+new IntersectionObserver(([en]) => $('bar').classList.toggle('stuck', en.intersectionRatio === 0)).observe(document.querySelector('header'));
+
+const BYID = Object.fromEntries(PLACES.map(p => [p.id, p]));
+// 네이버 지도는 장소 ID가 달라서 이름으로 검색해요. 지점명이 없는 가게는 동 이름을 붙여 정확도를 높여요.
+function naverUrl(p){
+  const dong = (p.a.match(/\(([^)]*동)\)\s*$/) || [])[1] || '';
+  const q = p.branch ? p.n : `${p.n} ${dong}`.trim();
+  return 'https://map.naver.com/p/search/' + encodeURIComponent(q);
+}
+function spotlight(){
+  const pool = current.length ? current : PLACES.filter(p => p.ty===state.ty);
+  showDetail(pool[Math.floor(Math.random()*pool.length)], true);
+}
+function showDetail(p, isPick){
+  const rec = p.sum && p.sum[1] && /추천/.test(p.sum[1]) ? p.sum[1].replace(/\s*추천$/,'') : '';
+  $('spot').innerHTML = `
+    <div class="thumb">${img(p, true)}</div>
+    <div class="body">
+      ${isPick ? `<div class="label">${TYPES[state.ty].pick}</div>` : ''}
+      <h2>${esc(p.n)}</h2>
+      <div class="desc">${esc(p.kcl)}${p.sum&&p.sum[0]?' · '+esc(p.sum[0]):''}</div>
+      <dl class="kv">
+        <dt>위치</dt><dd>${p.w ? `${p.s} ${p.ex}번 출구에서 도보 ${p.w}분 (${p.dist})` : `${p.s} 인근`}</dd>
+        <dt>한독빌딩</dt><dd>도보 약 ${p.hw}분 (약 ${p.hm}m)</dd>
+        <dt>주소</dt><dd>${esc(short(p.a))}</dd>
+        ${rec?`<dt>추천</dt><dd>${esc(rec)}</dd>`:''}
+        ${p.m?`<dt>메모</dt><dd>${esc(p.m)}</dd>`:''}
+      </dl>
+      <div class="acts">
+        <button class="btn btn-weak" id="again">${isPick ? '다시 고르기' : '닫기'}</button>
+        <a class="btn btn-primary" href="https://place.map.kakao.com/${p.id}" target="_blank" rel="noopener">카카오맵</a>
+        <a class="btn btn-primary" href="${naverUrl(p)}" target="_blank" rel="noopener">네이버 지도</a>
+      </div>
+    </div>`;
+  $('dim').classList.add('on');
+  $('again').onclick = isPick ? spotlight : close;
+}
+function close(){ $('dim').classList.remove('on'); }
+$('pick').addEventListener('click', spotlight);
+$('grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) showDetail(BYID[c.dataset.id], false); });
+$('dim').addEventListener('click', e => { if (e.target === $('dim')) close(); });
+
+render();
+</script>
+</body>
+</html>

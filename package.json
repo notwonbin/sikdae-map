@@ -1,0 +1,13 @@
+{
+  "name": "sikdae-map",
+  "version": "1.0.0",
+  "private": true,
+  "description": "식권대장 가맹점(음식점·카페·편의점) 찾기",
+  "scripts": {
+    "dev": "serve . -l 3000",
+    "start": "serve . -l 3000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
