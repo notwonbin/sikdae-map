@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>식권대장 가맹점 찾기</title>
+<title>식권대장 맛지도 · 멋쟁이사자처럼</title>
 <meta name="description" content="식권대장으로 결제할 수 있는 강남·역삼 음식점, 카페, 편의점을 사진과 함께 찾아보세요.">
 <meta name="theme-color" content="#ffffff">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -125,6 +125,17 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
 .acts .btn{flex:1;min-width:0;height:54px;padding:0 10px;font-size:16px;border-radius:16px;display:grid;place-items:center}
 .acts .btn-weak{flex:0 0 auto;padding:0 18px}
 
+/* intro splash */
+.intro{position:fixed;inset:0;z-index:100;background:#fff;display:grid;place-items:center;text-align:center;
+  transition:opacity .5s ease, visibility .5s;cursor:pointer}
+.intro.out{opacity:0;visibility:hidden}
+.intro > div > *{opacity:0;transform:translateY(10px);animation:introIn .6s cubic-bezier(.2,.8,.2,1) forwards}
+.intro .i1{font-size:15px;font-weight:600;color:var(--g500);animation-delay:.1s}
+.intro .i2{font-size:34px;font-weight:800;letter-spacing:-0.04em;color:var(--g900);margin-top:8px;animation-delay:.25s}
+.intro .i3{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:var(--blue);background:#E8F3FF;padding:6px 12px;border-radius:999px;animation-delay:.45s}
+@keyframes introIn{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .intro > div > *{animation:none;opacity:1;transform:none} }
+
 @media (max-width:900px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
 @media (max-width:640px){
   .wrap{padding:0 20px}
@@ -143,6 +154,24 @@ footer{border-top:1px solid var(--g100);padding:28px 0 48px;font-size:13px;line-
 </style>
 </head>
 <body>
+<div class="intro" id="intro" aria-hidden="true">
+  <div>
+    <div class="i1">멋쟁이사자처럼</div>
+    <div class="i2">식권대장 맛지도</div>
+    <div class="i3">ver. vinnie</div>
+  </div>
+</div>
+<script>
+// 인트로: 탭(브라우저 창)마다 처음 한 번만 보여요. 화면을 누르면 바로 넘어가요.
+(function(){
+  const el = document.getElementById('intro');
+  let seen = false; try { seen = sessionStorage.getItem('introSeen') === '1'; sessionStorage.setItem('introSeen','1'); } catch(e){}
+  if (seen) { el.remove(); return; }
+  const hide = () => { el.classList.add('out'); setTimeout(() => el.remove(), 600); };
+  const timer = setTimeout(hide, 1700);
+  el.addEventListener('click', () => { clearTimeout(timer); hide(); });
+})();
+</script>
 <div class="wrap">
   <header>
     <div class="seg" id="types"></div>
@@ -260,7 +289,7 @@ function card(p, i){
 let current = [];
 function render(){
   const T = TYPES[state.ty];
-  document.title = `식권대장 ${T.name} 찾기`;
+  document.title = `식권대장 맛지도 · ${T.name}`;
   $('types').innerHTML = Object.entries(TYPES).map(([k,t]) =>
     `<button class="${state.ty===k?'on':''}" data-t="${k}">${t.name}<span>${COUNT[k]||0}</span></button>`).join('');
   $('title').textContent = T.title;
